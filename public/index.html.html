@@ -1,0 +1,2139 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#667eea">
+    <meta name="format-detection" content="telephone=no">
+    <title>가상계좌 관리 시스템</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            overflow: hidden;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+
+        input, button, select, textarea {
+            font-family: inherit;
+            font-size: 16px;
+            -webkit-user-select: text;
+            user-select: text;
+        }
+
+        /* 로그인 화면 */
+        .login-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            z-index: 10000;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .login-box {
+            background: white;
+            padding: 30px 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 400px;
+            margin: auto;
+        }
+
+        .login-logo {
+            font-size: 44px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .login-title {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            color: #1e3c72;
+            margin-bottom: 25px;
+        }
+
+        .role-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .role-btn {
+            padding: 12px;
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            -webkit-appearance: none;
+            appearance: none;
+            transition: all 0.3s;
+            min-height: 44px;
+        }
+
+        .role-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #1e3c72;
+            font-size: 13px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            min-height: 44px;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .login-button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            min-height: 44px;
+            -webkit-appearance: none;
+            appearance: none;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        /* 앱 컨테이너 */
+        .app-container {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #f9f9f9;
+            z-index: 5000;
+            flex-direction: column;
+        }
+
+        .app-container.active {
+            display: flex;
+        }
+
+        /* 헤더 */
+        header {
+            background: white;
+            padding: 8px 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            gap: 8px;
+            min-height: 48px;
+            padding-top: max(8px, env(safe-area-inset-top));
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .logo {
+            font-size: 14px;
+            font-weight: bold;
+            color: #1e3c72;
+            white-space: nowrap;
+        }
+
+        .role-badge {
+            background: #667eea;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .logout-btn {
+            padding: 6px 12px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 11px;
+            -webkit-appearance: none;
+            appearance: none;
+            min-height: 36px;
+        }
+
+        /* 메인 콘텐츠 */
+        .container {
+            flex: 1;
+            padding: 12px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: max(12px, env(safe-area-inset-bottom));
+        }
+
+        /* 탭 */
+        .tab-navigation {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 12px;
+            background: white;
+            padding: 6px;
+            border-radius: 10px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .tab-btn {
+            flex-shrink: 0;
+            padding: 8px 12px;
+            background: white;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            color: #999;
+            -webkit-appearance: none;
+            appearance: none;
+            border-bottom: 2px solid transparent;
+            min-height: 40px;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* 카드 */
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1e3c72;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 3px solid #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* 폼 */
+        .form-grid {
+            display: grid;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .form-group {
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 13px;
+            color: #1e3c72;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 15px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: white;
+            min-height: 50px;
+            transition: all 0.3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+            transform: translateY(-1px);
+        }
+
+        .form-group select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23667eea' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            padding-right: 40px;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-group input::placeholder,
+        .form-group select::placeholder,
+        .form-group textarea::placeholder {
+            color: #aaa;
+            font-size: 14px;
+        }
+
+        /* 버튼 */
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 16px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 15px;
+            -webkit-appearance: none;
+            appearance: none;
+            min-height: 54px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-size: 16px;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #666;
+            border: 2px solid #e0e0e0;
+        }
+
+        .btn-secondary:hover {
+            background: #ebebeb;
+        }
+
+        .btn-small {
+            padding: 8px 12px;
+            font-size: 12px;
+            min-height: 40px;
+        }
+
+        /* 테이블 */
+        .table-wrapper {
+            background: white;
+            padding: 8px;
+            border-radius: 10px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin-bottom: 12px;
+            border: 1px solid #eee;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            min-width: 300px;
+        }
+
+        thead {
+            background: #f5f7ff;
+        }
+
+        th {
+            padding: 8px;
+            text-align: left;
+            font-weight: 600;
+            color: #1e3c72;
+            border-bottom: 2px solid #ddd;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #eee;
+            word-break: break-word;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-approved {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        /* 통계 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: #999;
+            margin-bottom: 6px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        /* 인증 섹션 */
+        .auth-section {
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .auth-input-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .auth-input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            text-align: center;
+            font-weight: bold;
+            letter-spacing: 3px;
+            -webkit-appearance: none;
+            appearance: none;
+            min-height: 40px;
+        }
+
+        .auth-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .auth-button {
+            padding: 10px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+            -webkit-appearance: none;
+            appearance: none;
+            min-height: 40px;
+        }
+
+        .complete-badge {
+            background: #d4edda;
+            color: #155724;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            text-align: center;
+            display: block;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .filter-buttons button {
+            flex: 1;
+            padding: 10px 8px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            -webkit-appearance: none;
+            appearance: none;
+            min-height: 40px;
+        }
+
+        .filter-buttons button.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .account-info {
+            background: #e8f5e9;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            line-height: 1.8;
+        }
+
+        .account-info p {
+            margin-bottom: 6px;
+        }
+
+        .account-info strong {
+            font-weight: 600;
+            color: #1e3c72;
+        }
+
+        .message {
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 12px;
+            text-align: center;
+            border: 1px solid;
+        }
+
+        .message.warning {
+            background: #fff3cd;
+            color: #856404;
+            border-color: #ffc107;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border-color: #28a745;
+        }
+
+        /* 모바일 카드형 레이아웃 */
+        .mobile-card-list {
+            display: none;
+        }
+
+        .mobile-card-item {
+            background: #f8f9fa;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            border-left: 4px solid #667eea;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .mobile-card-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .mobile-card-row:last-child {
+            border-bottom: none;
+        }
+
+        .mobile-card-label {
+            font-size: 12px;
+            color: #666;
+            font-weight: 600;
+        }
+
+        .mobile-card-value {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1e3c72;
+        }
+
+        .mobile-card-action {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        /* 푸터 */
+        footer {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px 15px;
+            text-align: center;
+            font-size: 11px;
+            line-height: 1.8;
+            margin-top: auto;
+        }
+
+        footer a {
+            color: #3498db;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        footer .footer-divider {
+            margin: 8px 0;
+            opacity: 0.3;
+        }
+
+        @media (max-width: 480px) {
+            body {
+                font-size: 14px;
+            }
+
+            /* 모바일에서 테이블 숨기고 카드 표시 */
+            .table-wrapper {
+                display: none;
+            }
+
+            .mobile-card-list {
+                display: block;
+            }
+
+            .login-box {
+                padding: 25px 20px;
+            }
+
+            .login-logo {
+                font-size: 48px;
+            }
+
+            .login-title {
+                font-size: 22px;
+            }
+
+            header {
+                min-height: 52px;
+                padding: 10px 15px;
+            }
+
+            .logo {
+                font-size: 15px;
+            }
+
+            .role-badge {
+                font-size: 11px;
+                padding: 4px 10px;
+            }
+
+            .container {
+                padding: 15px;
+            }
+
+            .tab-navigation {
+                padding: 8px;
+                gap: 6px;
+            }
+
+            .tab-btn {
+                font-size: 13px;
+                padding: 10px 14px;
+                min-height: 44px;
+                font-weight: 700;
+            }
+
+            .card {
+                padding: 18px;
+                margin-bottom: 15px;
+            }
+
+            .card-title {
+                font-size: 17px;
+                margin-bottom: 18px;
+                padding-bottom: 12px;
+            }
+
+            .form-grid {
+                gap: 18px;
+            }
+
+            .form-group label {
+                font-size: 14px;
+                margin-bottom: 10px;
+                font-weight: 700;
+            }
+
+            .form-group input,
+            .form-group select {
+                padding: 16px;
+                font-size: 16px;
+                min-height: 52px;
+                border-radius: 12px;
+            }
+
+            .form-group input::placeholder {
+                font-size: 14px;
+            }
+
+            .btn {
+                padding: 18px;
+                font-size: 16px;
+                min-height: 56px;
+                border-radius: 12px;
+            }
+
+            .btn-primary {
+                font-size: 17px;
+                font-weight: 800;
+            }
+
+            .button-group {
+                gap: 12px;
+                margin-top: 25px;
+            }
+
+            table {
+                font-size: 11px;
+                min-width: 320px;
+            }
+
+            th {
+                padding: 10px 6px;
+                font-size: 11px;
+            }
+
+            td {
+                padding: 12px 6px;
+                font-size: 12px;
+            }
+
+            .status-badge {
+                font-size: 10px;
+                padding: 5px 9px;
+            }
+
+            .stat-card {
+                padding: 15px;
+            }
+
+            .stat-value {
+                font-size: 26px;
+            }
+
+            .stat-label {
+                font-size: 12px;
+            }
+
+            .account-info {
+                padding: 16px;
+                font-size: 13px;
+                line-height: 2;
+                border-radius: 12px;
+            }
+
+            .message {
+                padding: 14px;
+                font-size: 13px;
+                line-height: 1.6;
+                border-radius: 10px;
+            }
+
+            .auth-input {
+                padding: 12px;
+                font-size: 16px;
+                min-height: 48px;
+            }
+
+            .auth-button {
+                padding: 12px;
+                font-size: 13px;
+                min-height: 48px;
+            }
+
+            .complete-badge {
+                padding: 10px 14px;
+                font-size: 13px;
+            }
+
+            footer {
+                font-size: 10px;
+                padding: 18px 12px;
+            }
+        }
+
+        /* 더 작은 화면 (아이폰 SE 등) */
+        @media (max-width: 375px) {
+            .container {
+                padding: 12px;
+            }
+
+            .card {
+                padding: 15px;
+            }
+
+            .form-group input,
+            .form-group select {
+                font-size: 15px;
+            }
+
+            .btn {
+                font-size: 15px;
+            }
+
+            table {
+                font-size: 10px;
+            }
+
+            th, td {
+                padding: 8px 4px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- 로그인 화면 -->
+<div id="loginScreen" class="login-container">
+    <div class="login-box">
+        <div class="login-logo">🏦</div>
+        <div class="login-title">가상계좌 관리</div>
+
+        <div class="role-selector">
+            <button class="role-btn active" onclick="selectRole('customer')">👤 고객</button>
+            <button class="role-btn" onclick="selectRole('admin')">👨‍💼 관리자</button>
+        </div>
+
+        <form onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label>아이디</label>
+                <input type="text" id="loginId" required placeholder="아이디" autocomplete="off">
+            </div>
+
+            <div class="form-group">
+                <label>비밀번호</label>
+                <input type="password" id="loginPassword" required placeholder="비밀번호" autocomplete="off">
+            </div>
+
+            <button type="submit" class="login-button">로그인</button>
+        </form>
+
+        <div style="margin-top: 15px; padding: 12px; background: #f5f7ff; border-radius: 8px; font-size: 10px; color: #666; line-height: 1.6;">
+            <a href="#" style="color: #667eea; font-weight: 600; text-decoration: none;">개인정보 처리방침</a><br>
+            [04538] 서울특별시 중구 명동11길 19 (명동1가 4-1)<br>
+            대표전화 : 02-3705-5000<br>
+            <span style="font-size: 9px;">Copyright 2006 Korea Federation of Banks. All rights reserved.</span>
+        </div>
+    </div>
+</div>
+
+<!-- 메인 앱 -->
+<div id="appContainer" class="app-container">
+    <header>
+        <div class="header-left">
+            <div class="logo">🏦 가상계좌</div>
+            <div class="role-badge" id="roleBadge">고객</div>
+        </div>
+        <button class="logout-btn" onclick="handleLogout()">로그아웃</button>
+    </header>
+
+    <div class="container">
+        <!-- 고객 페이지 -->
+        <div id="customerPage">
+            <div class="tab-navigation">
+                <button class="tab-btn active" onclick="switchTab('customer-application')">📝 신청</button>
+                <button class="tab-btn" onclick="switchTab('customer-status')">📊 현황</button>
+                <button class="tab-btn" onclick="switchTab('customer-account')">💳 계좌</button>
+            </div>
+
+            <!-- 신청하기 -->
+            <div id="customer-application" class="tab-content active">
+                <div class="card">
+                    <div class="card-title">💳 가상계좌 신청서</div>
+                    <form id="applicationForm" onsubmit="submitApplication(event)">
+                        <div class="form-grid">
+                            <div class="form-group name-field">
+                                <label>👤 성명 (띄어쓰기 구분)</label>
+                                <input type="text" id="appName" required placeholder="예: 홍 길동">
+                            </div>
+                            <div class="form-group phone-field">
+                                <label>📱 연락처 (숫자만 입력)</label>
+                                <input type="tel" id="appPhone" required placeholder="예: 01012345678" inputmode="numeric">
+                            </div>
+                            <div class="form-group officer-field">
+                                <label>👔 담당자명</label>
+                                <input type="text" id="appOfficer" required placeholder="예: 홍길동 팀장">
+                            </div>
+                            <div class="form-group bank-field">
+                                <label>🏦 은행명</label>
+                                <input type="text" id="appBank" required placeholder="예: 신한은행">
+                            </div>
+                            <div class="form-group amount-field">
+                                <label>💰 납입금액 (만원)</label>
+                                <input type="number" id="appAmount" required min="1" placeholder="예: 1000" inputmode="numeric">
+                            </div>
+                            <div class="form-group purpose-field">
+                                <label>📋 대출용도</label>
+                                <select id="appPurpose" required>
+                                    <option value="">용도를 선택하세요</option>
+                                    <option value="대환대출">💳 대환대출</option>
+                                    <option value="담보대출">🏠 담보대출</option>
+                                    <option value="차량대출">🚗 차량대출</option>
+                                    <option value="학자금대출">🎓 학자금대출</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="button-group">
+                            <button type="submit" class="btn btn-primary">✅ 신청하기</button>
+                            <button type="button" class="btn btn-secondary" onclick="resetForm()">🔄 초기화</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 신청현황 -->
+            <div id="customer-status" class="tab-content">
+                <div class="card">
+                    <div class="card-title">📊 내 신청현황</div>
+                    
+                    <!-- 데스크톱용 테이블 -->
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>신청번호</th>
+                                    <th>금액</th>
+                                    <th>상태</th>
+                                    <th>인증</th>
+                                </tr>
+                            </thead>
+                            <tbody id="statusTable">
+                                <tr><td colspan="4" style="text-align: center;">신청 없음</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- 모바일용 카드 -->
+                    <div class="mobile-card-list" id="statusMobileList">
+                        <div style="text-align: center; padding: 30px 20px; color: #999;">
+                            <div style="font-size: 40px; margin-bottom: 10px;">📋</div>
+                            <div>신청 내역이 없습니다</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 계좌정보 -->
+            <div id="customer-account" class="tab-content">
+                <div class="card">
+                    <div class="card-title">💳 나의 가상계좌</div>
+                    <div class="account-info" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);">
+                        <p style="margin-bottom: 12px;"><strong style="color: rgba(255,255,255,0.9); font-size: 12px;">🏦 은행</strong><br><span id="displayBank" style="font-size: 16px; font-weight: 700;">-</span></p>
+                        <p style="margin-bottom: 12px;"><strong style="color: rgba(255,255,255,0.9); font-size: 12px;">💳 계좌번호</strong><br><span id="displayAccount" style="font-size: 16px; font-weight: 700; letter-spacing: 1px;">-</span></p>
+                        <p style="margin-bottom: 12px;"><strong style="color: rgba(255,255,255,0.9); font-size: 12px;">👤 예금주</strong><br><span id="displayHolder" style="font-size: 16px; font-weight: 700;">-</span></p>
+                        <p style="margin-bottom: 0;"><strong style="color: rgba(255,255,255,0.9); font-size: 12px;">📅 발급일</strong><br><span id="displayDate" style="font-size: 16px; font-weight: 700;">-</span></p>
+                    </div>
+                    <div id="accountMessage" class="message warning" style="margin-top: 15px;">
+                        ⚠️ 신청 승인 후 인증번호를 입력하면<br>계좌정보가 표시됩니다
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 관리자 페이지 -->
+        <div id="adminPage" style="display: none;">
+            <div class="tab-navigation">
+                <button class="tab-btn active" onclick="switchTab('admin-dashboard')">📊 대시</button>
+                <button class="tab-btn" onclick="switchTab('admin-applications')">📝 신청</button>
+                <button class="tab-btn" onclick="switchTab('admin-auth')">🔐 인증</button>
+                <button class="tab-btn" onclick="switchTab('admin-accounts')">👥 계정</button>
+            </div>
+
+            <!-- 대시보드 -->
+            <div id="admin-dashboard" class="tab-content active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">총 신청</div>
+                        <div class="stat-value" id="totalApps">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">대기</div>
+                        <div class="stat-value" id="pendingApps">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">승인</div>
+                        <div class="stat-value" id="approvedApps">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">인증완료</div>
+                        <div class="stat-value" id="verifiedApps">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 신청관리 -->
+            <div id="admin-applications" class="tab-content">
+                <!-- 대기중 섹션 -->
+                <div class="card">
+                    <div class="card-title" style="background: linear-gradient(135deg, #ff9800 0%, #ff6b6b 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                        ⏳ 대기중인 신청 <span id="pendingCount" style="font-size: 14px; color: #ff9800;">(0)</span>
+                    </div>
+                    
+                    <!-- 데스크톱용 테이블 -->
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>출처</th>
+                                    <th>신청자</th>
+                                    <th>금액</th>
+                                    <th>은행</th>
+                                    <th>작업</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pendingAppsTable">
+                                <tr><td colspan="5" style="text-align: center; color: #999; padding: 30px;">대기중인 신청이 없습니다</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- 모바일용 카드 -->
+                    <div class="mobile-card-list" id="pendingMobileList">
+                        <div style="text-align: center; padding: 30px 20px; color: #999;">
+                            <div style="font-size: 40px; margin-bottom: 10px;">⏳</div>
+                            <div>대기중인 신청이 없습니다</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 승인됨 섹션 -->
+                <div class="card">
+                    <div class="card-title" style="background: linear-gradient(135deg, #4caf50 0%, #2196f3 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                        ✅ 승인된 신청 <span id="approvedCount" style="font-size: 14px; color: #4caf50;">(0)</span>
+                    </div>
+                    
+                    <!-- 데스크톱용 테이블 -->
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>출처</th>
+                                    <th>신청자</th>
+                                    <th>금액</th>
+                                    <th>계좌</th>
+                                    <th>인증</th>
+                                    <th>작업</th>
+                                </tr>
+                            </thead>
+                            <tbody id="approvedAppsTable">
+                                <tr><td colspan="6" style="text-align: center; color: #999; padding: 30px;">승인된 신청이 없습니다</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- 모바일용 카드 -->
+                    <div class="mobile-card-list" id="approvedMobileList">
+                        <div style="text-align: center; padding: 30px 20px; color: #999;">
+                            <div style="font-size: 40px; margin-bottom: 10px;">✅</div>
+                            <div>승인된 신청이 없습니다</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 인증관리 -->
+            <div id="admin-auth" class="tab-content">
+                <div class="card">
+                    <div class="card-title">🔐 실시간 인증 모니터링</div>
+                    <div style="background: #e3f2fd; padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 12px; color: #1565c0; line-height: 1.6;">
+                        💡 <strong>인증 프로세스:</strong><br>
+                        1️⃣ 고객이 모바일로 받은 6자리 인증번호 입력<br>
+                        2️⃣ 관리자가 입력된 번호 확인<br>
+                        3️⃣ 승인 확인 버튼 클릭<br>
+                        4️⃣ 고객이 가상계좌 정보 확인
+                    </div>
+                    
+                    <!-- 데스크톱용 테이블 -->
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>출처</th>
+                                    <th>고객명</th>
+                                    <th>입력번호</th>
+                                    <th>상태</th>
+                                    <th>작업</th>
+                                </tr>
+                            </thead>
+                            <tbody id="authTable">
+                                <tr><td colspan="5" style="text-align: center;">인증 대기중인 신청이 없습니다</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- 모바일용 카드 -->
+                    <div class="mobile-card-list" id="authMobileList">
+                        <div style="text-align: center; padding: 30px 20px; color: #999;">
+                            <div style="font-size: 40px; margin-bottom: 10px;">🔐</div>
+                            <div>인증 대기중인 신청이 없습니다</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 계정관리 -->
+            <div id="admin-accounts" class="tab-content">
+                <div class="card">
+                    <div class="card-title">👥 고객 계정 관리</div>
+                    
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                        <div style="font-size: 13px; font-weight: 600; color: #667eea; margin-bottom: 12px;">➕ 새 계정 추가</div>
+                        <div style="display: grid; gap: 10px;">
+                            <input type="text" id="newAccountId" placeholder="아이디 (예: user1)" 
+                                   style="padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px;">
+                            <input type="password" id="newAccountPwd" placeholder="비밀번호" 
+                                   style="padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px;">
+                            <button onclick="addAccount()" class="btn btn-primary" style="grid-column: span 1;">계정 추가</button>
+                        </div>
+                    </div>
+
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>아이디</th>
+                                    <th>비밀번호</th>
+                                    <th>작업</th>
+                                </tr>
+                            </thead>
+                            <tbody id="accountsTable">
+                                <tr><td colspan="3" style="text-align: center;">등록된 계정이 없습니다</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div style="margin-top: 15px; padding: 12px; background: #e3f2fd; border-radius: 8px; font-size: 12px; color: #1565c0; line-height: 1.6;">
+                        💡 <strong>안내:</strong><br>
+                        • 여기서 추가한 계정으로 고객이 로그인할 수 있습니다<br>
+                        • 관리자 계정(admin)은 삭제할 수 없습니다<br>
+                        • 비밀번호는 마스킹되어 표시됩니다
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ===== 전역 변수 =====
+    const DATA_KEY = 'VA_APPLICATIONS_DATA';
+    const ACCOUNTS_KEY = 'VA_ACCOUNTS_DATA';
+    let currentUser = null;
+    let currentRole = 'customer';
+    let applications = [];
+    let accounts = { customer: {}, admin: { 'admin': 'admin123' } }; // 기본 관리자 계정
+    let db = null;
+
+    // ===== IndexedDB 초기화 =====
+    async function initDB() {
+        return new Promise((resolve) => {
+            loadFromStorage();
+            
+            const deleteReq = indexedDB.deleteDatabase('VirtualAccountDB');
+            
+            deleteReq.onsuccess = () => {
+                const req = indexedDB.open('VirtualAccountDB', 1);
+                
+                req.onupgradeneeded = (e) => {
+                    const database = e.target.result;
+                    if (!database.objectStoreNames.contains('apps')) {
+                        database.createObjectStore('apps', { keyPath: 'id' });
+                    }
+                };
+                
+                req.onsuccess = () => {
+                    db = req.result;
+                    if (applications.length > 0) {
+                        saveToIndexedDB();
+                    }
+                    resolve();
+                };
+                
+                req.onerror = () => {
+                    db = null;
+                    resolve();
+                };
+            };
+            
+            deleteReq.onerror = () => {
+                db = null;
+                resolve();
+            };
+        });
+    }
+
+    function loadFromStorage() {
+        try {
+            const saved = localStorage.getItem(DATA_KEY);
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                if (Array.isArray(parsed)) {
+                    applications = parsed;
+                    console.log('✅ localStorage 로드:', applications.length, '개');
+                }
+            }
+        } catch (e) {
+            console.log('localStorage 로드 오류:', e);
+        }
+        
+        // 계정 데이터 로드
+        try {
+            const savedAccounts = localStorage.getItem(ACCOUNTS_KEY);
+            if (savedAccounts) {
+                const parsed = JSON.parse(savedAccounts);
+                accounts = parsed;
+                console.log('✅ 계정 데이터 로드');
+            }
+        } catch (e) {
+            console.log('계정 데이터 로드 오류:', e);
+        }
+        
+        if (!applications) applications = [];
+    }
+
+    function saveToIndexedDB() {
+        if (!db || !db.objectStoreNames.contains('apps')) {
+            return;
+        }
+        
+        try {
+            const tx = db.transaction(['apps'], 'readwrite');
+            const store = tx.objectStore('apps');
+            store.put({ id: 'all', data: applications });
+        } catch (e) {
+            console.log('IndexedDB 저장 실패');
+        }
+    }
+
+    function saveData() {
+        try {
+            localStorage.setItem(DATA_KEY, JSON.stringify(applications));
+            console.log('💾 localStorage 저장:', applications.length, '개');
+        } catch (e) {
+            console.log('localStorage 저장 오류:', e);
+        }
+        
+        saveToIndexedDB();
+    }
+
+    function saveAccounts() {
+        try {
+            localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
+            console.log('💾 계정 데이터 저장');
+        } catch (e) {
+            console.log('계정 데이터 저장 오류:', e);
+        }
+    }
+
+    // 다른 탭의 데이터 변경 감지
+    window.addEventListener('storage', (e) => {
+        if (e.key === DATA_KEY) {
+            try {
+                const newData = JSON.parse(e.newValue);
+                if (Array.isArray(newData)) {
+                    applications = newData;
+                    
+                    // 입력 중이 아닐 때만 UI 업데이트
+                    const activeElement = document.activeElement;
+                    const isInputActive = activeElement && (
+                        activeElement.tagName === 'INPUT' || 
+                        activeElement.tagName === 'TEXTAREA'
+                    );
+                    
+                    if (!isInputActive) {
+                        if (currentUser && currentUser.role === 'admin') {
+                            updateAdminUI();
+                        } else if (currentUser && currentUser.role === 'customer') {
+                            updateCustomerUI();
+                        }
+                    }
+                }
+            } catch (e) {
+                console.log('동기화 오류:', e);
+            }
+        }
+    });
+
+    // 주기적 동기화
+    setInterval(() => {
+        try {
+            const saved = localStorage.getItem(DATA_KEY);
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                if (Array.isArray(parsed) && parsed.length !== applications.length) {
+                    applications = parsed;
+                    
+                    // 입력 중이 아닐 때만 UI 업데이트
+                    const activeElement = document.activeElement;
+                    const isInputActive = activeElement && (
+                        activeElement.tagName === 'INPUT' || 
+                        activeElement.tagName === 'TEXTAREA'
+                    );
+                    
+                    if (!isInputActive) {
+                        if (currentUser && currentUser.role === 'admin') {
+                            updateAdminUI();
+                        } else if (currentUser && currentUser.role === 'customer') {
+                            updateCustomerUI();
+                        }
+                    }
+                }
+            }
+        } catch (e) {
+            console.log('주기적 동기화 오류:', e);
+        }
+    }, 2000);
+
+    // ===== 로그인 =====
+    function selectRole(role) {
+        currentRole = role;
+        document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+        event.target.classList.add('active');
+    }
+
+    function handleLogin(e) {
+        e.preventDefault();
+        const id = document.getElementById('loginId').value.trim();
+        const pwd = document.getElementById('loginPassword').value;
+
+        if (!id || !pwd) {
+            alert('아이디와 비밀번호를 입력하세요');
+            return;
+        }
+
+        // 계정 확인
+        if (!accounts[currentRole][id] || accounts[currentRole][id] !== pwd) {
+            alert('아이디 또는 비밀번호가 잘못되었습니다');
+            return;
+        }
+
+        currentUser = { id, role: currentRole };
+        showApp();
+    }
+
+    function showApp() {
+        loadFromStorage();
+        
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('appContainer').classList.add('active');
+        document.getElementById('roleBadge').textContent = currentRole === 'admin' ? '👨‍💼 관리자' : '👤 고객';
+
+        if (currentRole === 'admin') {
+            document.getElementById('customerPage').style.display = 'none';
+            document.getElementById('adminPage').style.display = 'block';
+            updateAdminUI();
+            
+            // 관리자: 1초마다 업데이트 (빠른 업데이트 필요)
+            setInterval(() => {
+                if (currentUser && currentUser.role === 'admin') {
+                    updateAdminUI();
+                }
+            }, 1000);
+        } else {
+            document.getElementById('customerPage').style.display = 'block';
+            document.getElementById('adminPage').style.display = 'none';
+            updateCustomerUI();
+            
+            // 고객: 3초마다만 업데이트 (자주 업데이트하면 입력 중단)
+            setInterval(() => {
+                if (currentUser && currentUser.role === 'customer') {
+                    // 입력 중이 아닐 때만 업데이트
+                    const activeElement = document.activeElement;
+                    const isInputActive = activeElement && (
+                        activeElement.tagName === 'INPUT' || 
+                        activeElement.tagName === 'TEXTAREA'
+                    );
+                    
+                    if (!isInputActive) {
+                        updateCustomerUI();
+                    }
+                }
+            }, 3000);
+        }
+    }
+
+    function handleLogout() {
+        if (confirm('로그아웃하시겠습니까?')) {
+            currentUser = null;
+            document.getElementById('appContainer').classList.remove('active');
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('loginId').value = '';
+            document.getElementById('loginPassword').value = '';
+        }
+    }
+
+    function switchTab(tabName) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        
+        const tab = document.getElementById(tabName);
+        if (tab) tab.classList.add('active');
+        if (event && event.target) event.target.classList.add('active');
+    }
+
+    // ===== 고객 기능 =====
+    function submitApplication(e) {
+        e.preventDefault();
+        
+        const name = document.getElementById('appName').value.trim();
+        const phone = document.getElementById('appPhone').value.trim();
+
+        if (!/^[가-힣]{1,}\s[가-힣]{1,}$/.test(name)) {
+            alert('성과 이름을 공백으로 구분하세요');
+            return;
+        }
+
+        if (!/^01[0-9]\d{7,8}$/.test(phone) || phone.length !== 11) {
+            alert('정확한 휴대폰 번호를 입력하세요');
+            return;
+        }
+
+        const app = {
+            appNo: 'APP-' + Date.now(),
+            customerId: currentUser.id,
+            name,
+            phone,
+            officer: document.getElementById('appOfficer').value,
+            bank: document.getElementById('appBank').value,
+            amount: document.getElementById('appAmount').value,
+            purpose: document.getElementById('appPurpose').value,
+            status: '대기',
+            createdAt: new Date().toLocaleString('ko-KR'),
+            source: window.location.hostname || '모바일웹사이트A', // 출처 추가
+            authCode: null,
+            customerAuthCode: null,
+            authVerified: false,
+            virtualAccount: null,
+            bankName: null,
+            accountHolder: null
+        };
+
+        applications.push(app);
+        saveData();
+        alert('✅ 신청이 완료되었습니다');
+        document.getElementById('applicationForm').reset();
+        switchTab('customer-status');
+        updateCustomerUI();
+        
+        // 현황 탭으로 이동 후 알림창 표시
+        setTimeout(() => {
+            alert('고객님 발송되신 모인 입력번호 6자리를 입력바랍니다');
+        }, 500);
+    }
+
+    function resetForm() {
+        document.getElementById('applicationForm').reset();
+    }
+
+    function updateCustomerUI() {
+        const myApps = applications.filter(a => a.customerId === currentUser.id);
+        const tbody = document.getElementById('statusTable');
+        const mobileList = document.getElementById('statusMobileList');
+
+        if (myApps.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">신청 없음</td></tr>';
+            mobileList.innerHTML = `
+                <div style="text-align: center; padding: 30px 20px; color: #999;">
+                    <div style="font-size: 40px; margin-bottom: 10px;">📋</div>
+                    <div>신청 내역이 없습니다</div>
+                </div>
+            `;
+            return;
+        }
+
+        // 현재 활성화된 입력 필드 보존
+        const activeInputId = document.activeElement?.id;
+        const activeInputValue = activeInputId ? document.getElementById(activeInputId)?.value || '' : '';
+
+        // 테이블 업데이트 (데스크톱)
+        tbody.innerHTML = myApps.map(app => {
+            const statusClass = app.status === '대기' ? 'status-pending' : 'status-approved';
+            let workHtml = '';
+
+            if (app.status === '대기') {
+                // 대기중 - 승인 대기 표시
+                workHtml = '<td><span style="background: #e0e0e0; color: #666; padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 600;">⏳ 승인 대기중</span></td>';
+            } else if (app.authVerified) {
+                // 관리자 승인 완료
+                workHtml = '<td><span class="complete-badge">✅ 승인완료</span></td>';
+            } else if (app.customerAuthCode) {
+                // 인증번호 입력 완료, 관리자 승인 대기
+                workHtml = '<td><span style="background: #ff9800; color: white; padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 600;">⏳ 관리자 승인대기</span></td>';
+            } else {
+                // 승인됨 - 인증번호 입력 필요
+                const inputValue = activeInputId === `auth_${app.appNo}` ? activeInputValue : '';
+                workHtml = `<td>
+                    <div class="auth-section">
+                        <div class="auth-input-group">
+                            <input type="text" id="auth_${app.appNo}" maxlength="6" placeholder="인증번호 6자리" class="auth-input" inputmode="numeric" value="${inputValue}">
+                            <button type="button" onclick="verifyCode('${app.appNo}')" class="auth-button">완료</button>
+                        </div>
+                    </div>
+                </td>`;
+            }
+
+            return `<tr>
+                <td><strong>${app.appNo.slice(-6)}</strong></td>
+                <td>${app.amount}만</td>
+                <td><span class="status-badge ${statusClass}">${app.status}</span></td>
+                ${workHtml}
+            </tr>`;
+        }).join('');
+
+        // 모바일 카드 업데이트
+        mobileList.innerHTML = myApps.map(app => {
+            const statusClass = app.status === '대기' ? 'status-pending' : 'status-approved';
+            const statusEmoji = app.status === '대기' ? '⏳' : '✅';
+            let authHtml = '';
+
+            if (app.status === '대기') {
+                authHtml = '<div style="text-align: center; color: #999; padding: 10px;">승인 대기중</div>';
+            } else if (app.authVerified) {
+                // 관리자 승인 완료
+                authHtml = '<div style="text-align: center; background: #d4edda; color: #155724; padding: 12px; border-radius: 8px; font-weight: 700;">✅ 승인 완료</div>';
+            } else if (app.customerAuthCode) {
+                // 인증번호 입력 완료, 관리자 승인 대기
+                authHtml = '<div style="text-align: center; background: #fff3cd; color: #856404; padding: 12px; border-radius: 8px; font-weight: 700;">⏳ 관리자 승인 대기중</div>';
+            } else {
+                // 인증번호 입력 필요
+                const inputValue = activeInputId === `auth_mobile_${app.appNo}` ? activeInputValue : '';
+                authHtml = `
+                    <div class="mobile-card-action">
+                        <div style="margin-bottom: 6px; font-weight: 600; color: #667eea; font-size: 12px;">🔐 인증번호 6자리 입력</div>
+                        <div style="display: flex; gap: 6px;">
+                            <input type="text" id="auth_mobile_${app.appNo}" maxlength="6" placeholder="인증번호" 
+                                   style="flex: 1; padding: 10px 8px; border: 2px solid #667eea; border-radius: 6px; text-align: center; font-size: 14px; font-weight: bold; letter-spacing: 2px;" 
+                                   inputmode="numeric" value="${inputValue}">
+                            <button onclick="verifyCode('${app.appNo}', true)" 
+                                    style="padding: 10px 16px; background: #667eea; color: white; border: none; border-radius: 6px; font-weight: 700; white-space: nowrap; font-size: 13px;">
+                                완료
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="mobile-card-item">
+                    <div class="mobile-card-row">
+                        <span class="mobile-card-label">📋 신청번호</span>
+                        <span class="mobile-card-value">${app.appNo.slice(-6)}</span>
+                    </div>
+                    <div class="mobile-card-row">
+                        <span class="mobile-card-label">💰 금액</span>
+                        <span class="mobile-card-value">${app.amount}만원</span>
+                    </div>
+                    <div class="mobile-card-row">
+                        <span class="mobile-card-label">📊 상태</span>
+                        <span class="status-badge ${statusClass}">${statusEmoji} ${app.status}</span>
+                    </div>
+                    ${authHtml}
+                </div>
+            `;
+        }).join('');
+
+        // 활성화된 입력 필드로 포커스 복원
+        if (activeInputId) {
+            const element = document.getElementById(activeInputId);
+            if (element) {
+                setTimeout(() => {
+                    element.focus();
+                }, 0);
+            }
+        }
+
+        // 관리자가 승인 확인한 신청만 계좌정보 표시
+        const verified = myApps.find(a => a.status === '승인' && a.customerAuthCode && a.authVerified);
+        if (verified) {
+            document.getElementById('displayBank').textContent = verified.bankName;
+            document.getElementById('displayAccount').textContent = verified.virtualAccount;
+            document.getElementById('displayHolder').textContent = verified.accountHolder;
+            document.getElementById('displayDate').textContent = verified.createdAt;
+            document.getElementById('accountMessage').style.display = 'none';
+        } else {
+            document.getElementById('displayBank').textContent = '-';
+            document.getElementById('displayAccount').textContent = '-';
+            document.getElementById('displayHolder').textContent = '-';
+            document.getElementById('displayDate').textContent = '-';
+            document.getElementById('accountMessage').style.display = 'block';
+        }
+    }
+
+    function verifyCode(appNo, isMobile = false) {
+        const inputId = isMobile ? `auth_mobile_${appNo}` : `auth_${appNo}`;
+        const input = document.getElementById(inputId);
+        
+        // 입력하기 전에 안내 메시지 표시
+        if (!input.value.trim()) {
+            alert('고객님 모바일을 통해 받은 인증번호 6자리를 입력해주세요');
+            input.focus();
+            return;
+        }
+        
+        const code = input.value.trim();
+
+        if (!code || code.length !== 6 || isNaN(code)) {
+            alert('6자리 숫자를 입력하세요');
+            input.value = '';
+            input.focus();
+            return;
+        }
+
+        const app = applications.find(a => a.appNo === appNo);
+        if (!app) {
+            alert('신청 정보를 찾을 수 없습니다');
+            return;
+        }
+
+        if (app.status !== '승인') {
+            alert('아직 승인되지 않은 신청입니다');
+            return;
+        }
+
+        // 고객이 입력한 인증번호 저장 - 승인 대기 상태로 변경
+        app.customerAuthCode = code;
+        app.authVerified = false; // 관리자 승인확인 대기
+        saveData();
+        
+        alert('✅ 인증번호가 전송되었습니다!\n\n관리자 승인 확인 후 계좌정보를 확인하실 수 있습니다');
+        updateCustomerUI();
+    }
+
+    // ===== 관리자 기능 =====
+    function updateApplicationsUI() {
+        const pendingApps = applications.filter(a => a.status === '대기');
+        const approvedApps = applications.filter(a => a.status === '승인');
+        
+        // 대기중 섹션 업데이트 (데스크톱)
+        const pendingTbody = document.getElementById('pendingAppsTable');
+        const pendingCountSpan = document.getElementById('pendingCount');
+        
+        pendingCountSpan.textContent = `(${pendingApps.length})`;
+        
+        if (pendingApps.length === 0) {
+            pendingTbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #999; padding: 30px;">대기중인 신청이 없습니다</td></tr>';
+        } else {
+            pendingTbody.innerHTML = pendingApps.map(app => {
+                const source = app.source || '미확인';
+                return `<tr>
+                    <td><span style="font-size: 11px; color: #667eea; font-weight: 700;">${source}</span></td>
+                    <td><strong>${app.name}</strong><br><span style="font-size: 11px; color: #999;">${app.phone}</span></td>
+                    <td><strong>${app.amount}만원</strong></td>
+                    <td>${app.bank}</td>
+                    <td>
+                        <button class="btn btn-small" style="background: #667eea; color: white; margin-bottom: 4px;" onclick="approveApp('${app.appNo}')">승인하기</button><br>
+                        <button class="btn btn-small" style="background: #f44336; color: white;" onclick="rejectApp('${app.appNo}')">발급불가</button>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        // 대기중 섹션 모바일 카드 업데이트
+        const pendingMobileList = document.getElementById('pendingMobileList');
+        if (pendingApps.length === 0) {
+            pendingMobileList.innerHTML = `
+                <div style="text-align: center; padding: 30px 20px; color: #999;">
+                    <div style="font-size: 40px; margin-bottom: 10px;">⏳</div>
+                    <div>대기중인 신청이 없습니다</div>
+                </div>
+            `;
+        } else {
+            pendingMobileList.innerHTML = pendingApps.map(app => {
+                const source = app.source || '미확인';
+                return `
+                    <div class="mobile-card-item" style="border-left: 4px solid #ff9800;">
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label">📱 출처</span>
+                            <span class="mobile-card-value" style="font-size: 11px; color: #667eea; font-weight: 700;">${source}</span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label">👤 신청자</span>
+                            <span class="mobile-card-value">${app.name}</span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label">📞 연락처</span>
+                            <span class="mobile-card-value" style="font-size: 12px;">${app.phone}</span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label">💰 금액</span>
+                            <span class="mobile-card-value">${app.amount}만원</span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label">🏦 은행</span>
+                            <span class="mobile-card-value">${app.bank}</span>
+                        </div>
+                        <div class="mobile-card-action">
+                            <button onclick="approveApp('${app.appNo}')" 
+                                    style="width: 100%; padding: 12px; background: #667eea; color: white; border: none; border-radius: 8px; font-weight: 700; margin-bottom: 8px;">
+                                승인하기
+                            </button>
+                            <button onclick="rejectApp('${app.appNo}')" 
+                                    style="width: 100%; padding: 12px; background: #f44336; color: white; border: none; border-radius: 8px; font-weight: 700;">
+                                발급불가
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // 승인됨 섹션 업데이트 (데스크톱)
+        const approvedTbody = document.getElementById('approvedAppsTable');
+        const approvedCountSpan = document.getElementById('approvedCount');
+        
+        approvedCountSpan.textContent = `(${approvedApps.length})`;
+        
+        if (approvedApps.length === 0) {
+            approvedTbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #999; padding: 30px;">승인된 신청이 없습니다</td></tr>';
+        } else {
+            approvedTbody.innerHTML = approvedApps.map(app => {
+                let authStatus;
+                if (app.authVerified) {
+                    authStatus = '<span style="color: #4caf50; font-weight: 600;">✅ 승인완료</span>';
+                } else if (app.customerAuthCode) {
+                    authStatus = '<span style="color: #ff9800; font-weight: 600;">⏳ 승인대기</span>';
+                } else {
+                    authStatus = '<span style="color: #9e9e9e; font-weight: 600;">📝 입력대기</span>';
+                }
+                
+                const source = app.source || '미확인';
+                
+                return `<tr>
+                    <td><span style="font-size: 11px; color: #667eea; font-weight: 700;">${source}</span></td>
+                    <td><strong>${app.name}</strong><br><span style="font-size: 11px; color: #999;">${app.phone}</span></td>
+                    <td><strong>${app.amount}만원</strong></td>
+                    <td>${app.bankName}<br><span style="font-size: 11px; font-family: monospace;">${app.virtualAccount}</span></td>
+                    <td>${authStatus}</td>
+                    <td>
+                        <button class="btn btn-small" style="background: #f44336; color: white;" onclick="cancelApp('${app.appNo}')">승인취소</button>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        // 승인됨 섹션 모바일 카드 업데이트
+        const approvedMobileList = document.getElementById('approvedMobileList');
+        if (approvedApps.length === 0) {
+            approvedMobileList.innerHTML = `
+                <div style="text-align: center; padding: 30px 20px; color: #999;">
+                    <div style="font-size: 40px; margin-bottom: 10px;">✅</div>
+                    <div>승인된 신청이 없습니다</div>
+                </div>
+            `;
+        } else {
+            approvedMobileList.innerHTML = approvedApps.map(app => {
+                let authStatusMobile;
+                if (app.authVerified) {
+                    authStatusMobile = '<span style="background: #4caf50; color: white; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 600;">✅ 승인완료</span>';
+                } else if (app.customerAuthCode) {
+                    authStatusMobile = '<span style="background: #ff9800; color: white; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 600;">⏳ 승인대기</span>';
+                } else {
+                    authStatusMobile = '<span style="background: #9e9e9e; color: white; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 600;">📝 입력대기</span>';
+                }
+                
+                const source = app.source || '미확인';
+
+                return `
+                    <div class="mobile-card-item" style="border-left: 4px solid #4caf50;">
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label">📱 출처</span>
+                            <span class="mobile-card-value" style="font-size: 11px; color: #667eea; font-weight: 700;">${source}</span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label">👤 신청자</span>
+                            <span class="mobile-card-value">${app.name}</span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label">📱 연락처</span>
+                            <span class="mobile-card-value" style="font-size: 12px;">${app.phone}</span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label">💰 금액</span>
+                            <span class="mobile-card-value">${app.amount}만원</span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label">🏦 계좌</span>
+                            <span class="mobile-card-value" style="font-size: 11px;">${app.bankName}<br>${app.virtualAccount}</span>
+                        </div>
+                        <div class="mobile-card-row">
+                            <span class="mobile-card-label">🔐 인증상태</span>
+                            ${authStatusMobile}
+                        </div>
+                        <div class="mobile-card-action">
+                            <button onclick="cancelApp('${app.appNo}')" 
+                                    style="width: 100%; padding: 12px; background: #f44336; color: white; border: none; border-radius: 8px; font-weight: 700;">
+                                승인취소
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+    }
+
+    function approveApp(appNo) {
+        const app = applications.find(a => a.appNo === appNo);
+        if (!app) return;
+
+        const account = prompt('가상계좌번호를 입력하세요\n(예: 110-1234-567890)');
+        if (!account) return;
+
+        const bankName = prompt('은행명을 입력하세요\n(예: 신한은행)');
+        if (!bankName) return;
+
+        const holder = prompt('예금주명을 입력하세요\n(선택)') || '미입력';
+
+        app.status = '승인';
+        app.virtualAccount = account;
+        app.bankName = bankName;
+        app.accountHolder = holder;
+        app.customerAuthCode = null; // 고객 인증번호 입력 대기
+        app.authVerified = false; // 관리자 승인확인 대기
+        saveData();
+
+        alert('✅ 승인 완료\n\n고객이 모바일로 받은 인증번호를 입력하면\n실시간 인증 현황 탭에서 확인 후 승인해주세요');
+        updateAdminUI();
+    }
+
+    function cancelApp(appNo) {
+        if (confirm('승인을 취소하시겠습니까?')) {
+            const app = applications.find(a => a.appNo === appNo);
+            if (app) {
+                app.status = '대기';
+                app.customerAuthCode = null;
+                app.authVerified = false;
+                app.virtualAccount = null;
+                app.bankName = null;
+                app.accountHolder = null;
+                saveData();
+                alert('승인이 취소되었습니다');
+                updateAdminUI();
+            }
+        }
+    }
+
+    function rejectApp(appNo) {
+        if (confirm('이 신청을 발급 불가 처리하시겠습니까?\n신청이 자동으로 취소됩니다.')) {
+            const index = applications.findIndex(a => a.appNo === appNo);
+            if (index !== -1) {
+                const app = applications[index];
+                applications.splice(index, 1); // 배열에서 완전히 제거
+                saveData();
+                alert(`발급 불가 처리되었습니다\n신청자: ${app.name}`);
+                updateAdminUI();
+            }
+        }
+    }
+
+    function updateAdminUI() {
+        const total = applications.length;
+        const pending = applications.filter(a => a.status === '대기').length;
+        const approved = applications.filter(a => a.status === '승인').length;
+        const verified = applications.filter(a => a.status === '승인' && a.customerAuthCode).length;
+
+        document.getElementById('totalApps').textContent = total;
+        document.getElementById('pendingApps').textContent = pending;
+        document.getElementById('approvedApps').textContent = approved;
+        document.getElementById('verifiedApps').textContent = verified;
+
+        updateApplicationsUI();
+        updateAuthUI();
+        updateAccountsUI();
+    }
+
+    function updateAuthUI() {
+        const approved = applications.filter(a => a.status === '승인');
+        const tbody = document.getElementById('authTable');
+        const authMobileList = document.getElementById('authMobileList');
+
+        if (approved.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">인증 대기중인 신청이 없습니다</td></tr>';
+            authMobileList.innerHTML = `
+                <div style="text-align: center; padding: 30px 20px; color: #999;">
+                    <div style="font-size: 40px; margin-bottom: 10px;">🔐</div>
+                    <div>인증 대기중인 신청이 없습니다</div>
+                </div>
+            `;
+            return;
+        }
+
+        // 데스크톱 테이블 업데이트
+        tbody.innerHTML = approved.map(app => {
+            let statusHtml, actionHtml;
+            
+            if (!app.customerAuthCode) {
+                // 고객이 아직 인증번호를 입력하지 않음
+                statusHtml = '<span style="background: #9e9e9e; color: white; padding: 6px 10px; border-radius: 6px; font-size: 11px; white-space: nowrap;">⏳ 입력 대기</span>';
+                actionHtml = '<span style="color: #999; font-size: 11px;">-</span>';
+            } else if (!app.authVerified) {
+                // 고객이 인증번호를 입력했지만 관리자 미승인
+                statusHtml = '<span style="background: #ff9800; color: white; padding: 6px 10px; border-radius: 6px; font-size: 11px; white-space: nowrap;">📝 승인 대기</span>';
+                actionHtml = `<button class="btn btn-small" style="background: #4caf50; color: white; padding: 6px 12px;" onclick="verifyAuthCode('${app.appNo}')">승인 확인</button>`;
+            } else {
+                // 관리자 승인 완료
+                statusHtml = '<span style="background: #4caf50; color: white; padding: 6px 10px; border-radius: 6px; font-size: 11px; white-space: nowrap;">✅ 승인 완료</span>';
+                actionHtml = '<span style="color: #4caf50; font-weight: 600; font-size: 11px;">완료됨</span>';
+            }
+            
+            const displayCode = app.customerAuthCode ? app.customerAuthCode : '____';
+            const source = app.source || '미확인';
+
+            return `<tr>
+                <td><span style="font-size: 11px; color: #667eea; font-weight: 700;">${source}</span></td>
+                <td><strong>${app.name}</strong></td>
+                <td style="font-family: monospace; font-weight: bold; letter-spacing: 2px; font-size: 16px; color: ${app.customerAuthCode ? '#667eea' : '#ccc'};">${displayCode}</td>
+                <td style="text-align: center;">${statusHtml}</td>
+                <td style="text-align: center;">${actionHtml}</td>
+            </tr>`;
+        }).join('');
+
+        // 모바일 카드 업데이트
+        authMobileList.innerHTML = approved.map(app => {
+            let statusBadge, actionButton;
+            const source = app.source || '미확인';
+            const displayCode = app.customerAuthCode ? app.customerAuthCode : '______';
+            const codeColor = app.customerAuthCode ? '#667eea' : '#ccc';
+            
+            if (!app.customerAuthCode) {
+                statusBadge = '<span style="background: #9e9e9e; color: white; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 600;">⏳ 입력 대기</span>';
+                actionButton = '<div style="text-align: center; color: #999; padding: 10px;">고객 입력 대기중</div>';
+            } else if (!app.authVerified) {
+                statusBadge = '<span style="background: #ff9800; color: white; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 600;">📝 승인 대기</span>';
+                actionButton = `
+                    <button onclick="verifyAuthCode('${app.appNo}')" 
+                            style="width: 100%; padding: 14px; background: #4caf50; color: white; border: none; border-radius: 8px; font-weight: 700; font-size: 15px;">
+                        승인 확인
+                    </button>
+                `;
+            } else {
+                statusBadge = '<span style="background: #4caf50; color: white; padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 600;">✅ 승인 완료</span>';
+                actionButton = '<div style="text-align: center; background: #d4edda; color: #155724; padding: 12px; border-radius: 8px; font-weight: 700;">승인 완료됨</div>';
+            }
+
+            return `
+                <div class="mobile-card-item" style="border-left: 4px solid #667eea;">
+                    <div class="mobile-card-row">
+                        <span class="mobile-card-label">📱 출처</span>
+                        <span class="mobile-card-value" style="font-size: 11px; color: #667eea; font-weight: 700;">${source}</span>
+                    </div>
+                    <div class="mobile-card-row">
+                        <span class="mobile-card-label">👤 고객명</span>
+                        <span class="mobile-card-value">${app.name}</span>
+                    </div>
+                    <div class="mobile-card-row">
+                        <span class="mobile-card-label">🔐 입력번호</span>
+                        <span style="font-family: monospace; font-weight: bold; letter-spacing: 4px; font-size: 20px; color: ${codeColor};">${displayCode}</span>
+                    </div>
+                    <div class="mobile-card-row">
+                        <span class="mobile-card-label">📊 상태</span>
+                        ${statusBadge}
+                    </div>
+                    <div class="mobile-card-action">
+                        ${actionButton}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function verifyAuthCode(appNo) {
+        const app = applications.find(a => a.appNo === appNo);
+        if (!app || !app.customerAuthCode) {
+            alert('인증번호가 입력되지 않았습니다');
+            return;
+        }
+
+        if (confirm(`고객명: ${app.name}\n인증번호: ${app.customerAuthCode}\n\n위 정보를 확인하고 승인하시겠습니까?`)) {
+            app.authVerified = true;
+            saveData();
+            alert('✅ 승인이 완료되었습니다\n고객이 계좌정보를 확인할 수 있습니다');
+            updateAdminUI();
+        }
+    }
+
+    // ===== 계정 관리 =====
+    function updateAccountsUI() {
+        const tbody = document.getElementById('accountsTable');
+        const customerAccounts = accounts.customer || {};
+        const accountList = Object.entries(customerAccounts);
+
+        if (accountList.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align: center;">등록된 계정이 없습니다</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = accountList.map(([id, pwd]) => {
+            const maskedPwd = '•'.repeat(pwd.length);
+            return `<tr>
+                <td><strong>${id}</strong></td>
+                <td style="font-family: monospace; letter-spacing: 3px;">${maskedPwd}</td>
+                <td>
+                    <button class="btn btn-small" style="background: #ff6b6b; color: white;" onclick="deleteAccount('${id}')">삭제</button>
+                </td>
+            </tr>`;
+        }).join('');
+    }
+
+    function addAccount() {
+        const id = document.getElementById('newAccountId').value.trim();
+        const pwd = document.getElementById('newAccountPwd').value;
+
+        if (!id || !pwd) {
+            alert('아이디와 비밀번호를 모두 입력하세요');
+            return;
+        }
+
+        if (id.length < 3) {
+            alert('아이디는 3자 이상이어야 합니다');
+            return;
+        }
+
+        if (pwd.length < 4) {
+            alert('비밀번호는 4자 이상이어야 합니다');
+            return;
+        }
+
+        if (accounts.customer[id]) {
+            alert('이미 존재하는 아이디입니다');
+            return;
+        }
+
+        accounts.customer[id] = pwd;
+        saveAccounts();
+        
+        document.getElementById('newAccountId').value = '';
+        document.getElementById('newAccountPwd').value = '';
+        
+        alert('✅ 계정이 추가되었습니다\n아이디: ' + id);
+        updateAccountsUI();
+    }
+
+    function deleteAccount(id) {
+        if (!confirm(`계정 "${id}"를 삭제하시겠습니까?`)) {
+            return;
+        }
+
+        delete accounts.customer[id];
+        saveAccounts();
+        alert('계정이 삭제되었습니다');
+        updateAccountsUI();
+    }
+
+    // 초기화
+    document.addEventListener('DOMContentLoaded', async () => {
+        await initDB();
+    });
+</script>
+
+
+<!-- 푸터 -->
+<footer>
+    <a href="#" style="font-weight: 600;">개인정보 처리방침</a>
+    <div class="footer-divider"></div>
+    [04538] 서울특별시 중구 명동11길 19 (명동1가 4-1)<br>
+    대표전화 : 02-3705-5000<br>
+    Copyright 2006 Korea Federation of Banks. All rights reserved.
+</footer>
+
+</body>
+</html>
